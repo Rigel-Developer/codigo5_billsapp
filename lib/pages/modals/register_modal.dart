@@ -1,3 +1,5 @@
+import 'package:codigo5_billsapp/db/db_admin.dart';
+import 'package:codigo5_billsapp/models/bill_model.dart';
 import 'package:codigo5_billsapp/util/data_general.dart';
 import 'package:codigo5_billsapp/widgets/item_type_widget.dart';
 import 'package:codigo5_billsapp/widgets/texfield_normal_widget.dart';
@@ -49,94 +51,143 @@ class _RegisterModalState extends State<RegisterModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(34.0),
-          topRight: Radius.circular(34.0),
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(34.0),
+            topRight: Radius.circular(34.0),
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            "Registrar salida",
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 16.0,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              "Registrar salida",
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 16.0,
+              ),
             ),
-          ),
-          const SizedBox(
-            height: 20.0,
-          ),
-          TextFieldNormalWidget(
-            hintText: "Ingresa un título",
-            controller: _titleController,
-          ),
-          const SizedBox(
-            height: 12.0,
-          ),
-          TextFieldNormalWidget(
-            hintText: "Ingresa el precio",
-            isNumber: true,
-            controller: _priceController,
-          ),
-          const SizedBox(
-            height: 12.0,
-          ),
-          TextFieldNormalWidget(
-            hintText: "Selecciona una fecha",
-            isDatePicker: true,
-            onMandarina: () {
-              showDateTimePicker();
-            },
-            controller: _dateController,
-          ),
-          const SizedBox(
-            height: 20.0,
-          ),
-          Wrap(
-            spacing: 12.0,
-            runSpacing: 12.0,
-            alignment: WrapAlignment.center,
-            children: types
-                .map(
-                  (e) => ItemTypeWidget(
-                    data: e,
-                    isSelected: _selectedType == e["name"],
-                    onTap: () {
-                      _selectedType = e["name"];
-                      setState(() {});
-                    },
+            const SizedBox(
+              height: 20.0,
+            ),
+            TextFieldNormalWidget(
+              hintText: "Ingresa un título",
+              controller: _titleController,
+            ),
+            const SizedBox(
+              height: 12.0,
+            ),
+            TextFieldNormalWidget(
+              hintText: "Ingresa el precio",
+              isNumber: true,
+              controller: _priceController,
+            ),
+            const SizedBox(
+              height: 12.0,
+            ),
+            TextFieldNormalWidget(
+              hintText: "Selecciona una fecha",
+              isDatePicker: true,
+              onMandarina: () {
+                showDateTimePicker();
+              },
+              controller: _dateController,
+            ),
+            const SizedBox(
+              height: 20.0,
+            ),
+            Wrap(
+              spacing: 12.0,
+              runSpacing: 12.0,
+              alignment: WrapAlignment.center,
+              children: types
+                  .map(
+                    (e) => ItemTypeWidget(
+                      data: e,
+                      isSelected: _selectedType == e["name"],
+                      onTap: () {
+                        _selectedType = e["name"];
+                        setState(() {});
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(
+              height: 20.0,
+            ),
+            SizedBox(
+              width: double.infinity,
+              height: 50.0,
+              child: ElevatedButton(
+                onPressed: () {
+                  BillModel bill = BillModel(
+                    title: _titleController.text,
+                    price: double.parse(_priceController.text),
+                    datetime: _dateController.text,
+                    type: _selectedType,
+                  );
+
+                  DBAdmin()
+                      .insertBill(bill)
+                      .then(
+                        (value) => {
+                          if (value > 0)
+                            {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      const Text("Se insertó correctamente"),
+                                  backgroundColor: Colors.green,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      14.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Navigator.pop(context),
+                            }
+                        },
+                      )
+                      .catchError((error) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("No se insertó correctamente"),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(16.0),
+                            topRight: Radius.circular(16.0),
+                          ),
+                        ),
+                      ),
+                    );
+                    return error;
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xff101321),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16.0),
                   ),
-                )
-                .toList(),
-          ),
-          const SizedBox(
-            height: 20.0,
-          ),
-          SizedBox(
-            width: double.infinity,
-            height: 50.0,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xff101321),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16.0),
                 ),
-              ),
-              child: const Text(
-                "Agregar",
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
+                child: const Text(
+                  "Agregar",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

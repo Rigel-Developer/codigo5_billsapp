@@ -1,7 +1,7 @@
+import 'package:codigo5_billsapp/db/db_admin.dart';
+import 'package:codigo5_billsapp/models/bill_model.dart';
 import 'package:codigo5_billsapp/pages/modals/register_modal.dart';
-
 import 'package:codigo5_billsapp/widgets/item_bill_widget.dart';
-
 import 'package:codigo5_billsapp/widgets/texfield_normal_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -14,7 +14,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
-
+  final List<BillModel> _bills = [];
   showRegisterModal() {
     showModalBottomSheet(
       context: context,
@@ -28,7 +28,24 @@ class _HomePageState extends State<HomePage> {
           child: const RegisterModal(),
         );
       },
+    ).then(
+      (value) => {
+        getBillsData(),
+      },
     );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getBillsData();
+  }
+
+  getBillsData() async {
+    List<BillModel> bills = await DBAdmin().getBills();
+    _bills.addAll(bills);
+    setState(() {});
   }
 
   @override
@@ -128,16 +145,22 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(
                               height: 16.0,
                             ),
-                            const ItemBillWidget(),
-                            const ItemBillWidget(),
-                            const ItemBillWidget(),
-                            const ItemBillWidget(),
-                            const ItemBillWidget(),
-                            const ItemBillWidget(),
-                            const ItemBillWidget(),
-                            const ItemBillWidget(),
-                            const ItemBillWidget(),
-                            const ItemBillWidget(),
+                            _bills.isEmpty
+                                ? const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                : ListView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: _bills.length,
+                                    itemBuilder:
+                                        (BuildContext context, int index) {
+                                      return ItemBillWidget(
+                                        bill: _bills[index],
+                                      );
+                                    },
+                                  ),
                           ],
                         ),
                       ),
